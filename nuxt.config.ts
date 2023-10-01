@@ -4,5 +4,6 @@ export default defineNuxtConfig({
     baseURL: '/nubank-to-mobills-converter/' // baseURL: '/<repository>/'
   },
   modules: ['@nuxtjs/tailwindcss', '@vueuse/nuxt', 'nuxt-icon'],
-  pages: true
+  pages: true,
+  ssr: false,
 });
