@@ -2,7 +2,7 @@
   "name": "my-nuxt-layer",
   "type": "module",
   "version": "0.0.1",
-  "homepage": "https://alexislopes.github.io/nubank-to-mobills-converter/",
+  "homepage": "https://alexislopes.github.io/konverti/",
   "main": "./nuxt.config.ts",
   "scripts": {
     "dev": "nuxi dev .playground",
@@ -11,11 +11,12 @@
     "preview": "nuxt preview .playground",
     "lint": "eslint .",
     "postinstall": "nuxt prepare .playground",
-    "deploy": "nuxt generate && gh-pages --dotfiles -d .output/public"
+    "deploy": "nuxt generate && echo.> .output/public/.nojekyll && gh-pages --dotfiles -d .output/public"
   },
   "devDependencies": {
     "@nuxt/devtools": "^0.8.3",
     "@nuxt/eslint-config": "^0.1.1",
+    "@samk-dev/nuxt-vcalendar": "^1.0.0",
     "@types/papaparse": "^5.3.8",
     "eslint": "^8.28.0",
     "nuxt": "^3.6.2",

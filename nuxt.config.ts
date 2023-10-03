@@ -1,9 +1,9 @@
 // https://v3.nuxtjs.org/api/configuration/nuxt.config
 export default defineNuxtConfig({
   app: {
-    baseURL: '/nubank-to-mobills-converter/' // baseURL: '/<repository>/'
+    baseURL: '/konverti/' // baseURL: '/<repository>/'
   },
-  modules: ['@nuxtjs/tailwindcss', '@vueuse/nuxt', 'nuxt-icon'],
+  modules: ['@nuxtjs/tailwindcss', '@vueuse/nuxt', 'nuxt-icon', '@samk-dev/nuxt-vcalendar'],
   pages: true,
   ssr: false,
 });
