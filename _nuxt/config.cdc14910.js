@@ -1,1 +1,0 @@
-import{U as p,V as o,W as e,u as f}from"./entry.df8fb084.js";const i=p({myLayer:{name:"Hello from Nuxt layer"}}),a={},t=o(i,a);function u(){const n=f();return n._appConfig||(n._appConfig=e(t)),n._appConfig}export{u};
