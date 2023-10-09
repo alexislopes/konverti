@@ -101,13 +101,23 @@ watch(files, (files) => {
   handleFile(files[0])
 })
 
+const receitas = computed(() => {
+  const valor = filtered.value.filter(f => Number(f.Valor) > 0).map(m => Number(m.Valor)).reduce((a, b) => a + b, 0)
+  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor)
+})
+
+const despesas = computed(() => {
+  const valor = filtered.value.filter(f => Number(f.Valor) < 0).map(m => Number(m.Valor)).reduce((a, b) => a + b, 0)
+  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor)
+})
 
 
 </script>
 
 <template>
 <div class="flex items-center justify-center h-screen flex-col gap-6">
-  <VDatePicker isDark v-model.range="date" :attributes="attrs" :max-date="new Date()" color="indigo" :rules="rules" :disabled="!filtered.length">
+  <VDatePicker isDark v-model.range="date" :attributes="attrs" :max-date="new Date()" color="indigo" :rules="rules"
+    :disabled="!filtered.length">
     <template #default="{ togglePopover, inputValue, inputEvents }">
       <div class="flex rounded-lg border border-gray-300 dark:border-gray-600 overflow-hidden cursor-pointer"
         @click="togglePopover">
@@ -135,19 +145,45 @@ watch(files, (files) => {
   </dialog>
 
   <div class="flex gap-4">
-    <div class="bg-[#fefefe] rounded-md p-5 flex gap-4 flex-col">
-      <h1 class="text-xl font-medium text-slate-600">Adicione novas transferências</h1>
-      <Dropzone @onDrop="files = $event" class="w-full" />
-      <div v-for="file in files" :key="file.name">
-        <FileItem :file="file" />
+    <div class="flex flex-col">
+      <div class="bg-[#fefefe] rounded-md p-5 flex gap-4 flex-col">
+        <h1 class="text-xl font-medium text-slate-600">Adicione novas transferências</h1>
+        <Dropzone @onDrop="files = $event" class="w-full" />
+
+        <div v-for="file in files" :key="file.name">
+          <FileItem :file="file" />
+        </div>
+
+        <div :class="files.length === 0 || !account ? 'tooltip' : ''"
+          data-tip="Você precisa importar o arquivo de transferências e selecionar uma conta.">
+          <button :disabled="files.length === 0 || !account" class="btn btn-block btn-primary"
+            @click="downloadExemplo">converter</button>
+        </div>
       </div>
 
-      <div :class="files.length === 0 || !account ? 'tooltip' : ''"
-        data-tip="Você precisa importar o arquivo de transferências e selecionar uma conta.">
-        <button :disabled="files.length === 0 || !account" class="btn btn-block btn-primary"
-          @click="downloadExemplo">converter</button>
+    <!-- <div class="stats stats-horizontal lg:stats-horizontal shadow">
+      <div class="stat">
+        <div class="stat-title">Linhas filtradas</div>
+        <div class="stat-value">{{ filtered.length }}</div>
+        <div class="stat-desc">de {{ csv.length }} importadas</div>
       </div>
-    </div>
+
+      <div class="stat">
+        <div class="stat-title">Receitas</div>
+        <div class="stat-value"> {{ receitas }}</div>
+        <div class="stat-desc">no período {{ `${new Date(date.start).toLocaleDateString('pt-BR', { day: "numeric", month: "short" })} - ${new Date(date.end).toLocaleDateString('pt-BR', { day: "numeric", month: "short" })}` }}</div>
+
+      </div>
+
+      <div class="stat">
+        <div class="stat-title">Despesas</div>
+        <div class="stat-value">{{ despesas }}</div>
+        <div class="stat-desc">no período {{ `${new Date(date.start).toLocaleDateString('pt-BR', { day: "numeric", month: "short" })} - ${new Date(date.end).toLocaleDateString('pt-BR', { day: "numeric", month: "short" })}` }}</div>
+      </div>
+    </div> -->
+  </div>
+
+
     <div>
       <div class="form-control" v-for="conta in contas" :key="conta">
         <label class="label cursor-pointer flex gap-2">
@@ -161,6 +197,14 @@ watch(files, (files) => {
         Nova conta
       </button>
     </div>
+    <div class="stats shadow">
+
+
+
+    </div>
+  </div>
+  <div class="absolute top-0 right-0 p-8">
+    <ProfileBadge />
   </div>
 </div>
 </template>

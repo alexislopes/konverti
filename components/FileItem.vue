@@ -28,11 +28,11 @@ onMounted(() => {
 <template>
 <div class="flex gap-4 bg-slate-600 p-4 rounded-md">
   <Icon name="teenyicons:spreadsheet-outline" class="text-4xl" />
-  <div>
+  <div class="w-full">
 
     <div>
       <p>{{ file.name }}</p>
-      <div class="flex justify-between">
+      <div class="flex justify-between ">
         <span>{{ file.size }} B</span>
         <p>{{ progress }}%</p>
       </div>
