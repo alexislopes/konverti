@@ -157,7 +157,8 @@ const despesas = computed(() => {
         <div :class="files.length === 0 || !account ? 'tooltip' : ''"
           data-tip="Você precisa importar o arquivo de transferências e selecionar uma conta.">
           <button :disabled="files.length === 0 || !account" class="btn btn-block btn-primary"
-            @click="downloadExemplo">converter</button>
+            @click="downloadExemplo">
+            converter {{ filtered.length }} entradas</button>
         </div>
       </div>
 
