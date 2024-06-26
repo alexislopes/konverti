@@ -1,13 +1,32 @@
 <script lang="ts" setup>
-const emit = defineEmits(['onDrop'])
+import { toRef } from 'vue';
+const emit = defineEmits(['onDrop', 'onDropError'])
 
 const dropZoneRef = ref<HTMLDivElement>()
+const file = ref<File | undefined>()
+const matcher = ref<string[]>(["Data", "Valor", "Identificador", "Descrição"])
+const { header } = usePapaparse(file)
+
+const match = computed(() => {
+  return matcher.value.filter(m => header.value.includes(m)).length === matcher.value.length
+})
 
 function onDrop(files: File[] | null) {
-  emit('onDrop', files)
+  file.value = files?.[0]
+
+  const { type } = file.value
+
+  if (type !== 'text/csv') {
+    emit('onDropError', { message: 'Tipo de arquivo inválido' })
+  }
+  else if (!match.value) {
+    emit('onDropError', { message: 'Arquivo contém estrutura inválida' })
+  } else {
+    emit('onDrop', files)
+  }
 }
 
-const { isOverDropZone } = useDropZone(dropZoneRef, onDrop)
+const { files, isOverDropZone } = useDropZone(dropZoneRef, onDrop)
 </script>
 
 <template>
@@ -17,7 +36,7 @@ const { isOverDropZone } = useDropZone(dropZoneRef, onDrop)
   <label class="font-medium text-slate-600">Arraste e solte ou <label for="input-file" class="text-violet-600 cursor-pointer">Escolha um
       arquivo</label> para upload</label>
   <p class="text-slate-600">CSV</p>
-  <input type="file" id="input-file" class="hidden" @change="onDrop($event.target.files)" />
+  <input type="file" id="input-file" class="hidden" accept=".csv" @change="onDrop($event.target.files)" />
 </div>
 </template>
 

@@ -6,13 +6,14 @@ useHead({
 })
 
 import download from "downloadjs";
-import Papa from "papaparse";
-import { computed, ref, watch } from "vue";
-const csv = ref([]);
+import { computed, ref, watch, toRef } from "vue";
+// const csv = ref([]);
 const account = ref('');
-const ocultados = ref([])
 
-const files = ref<File[]>([]);
+const file = ref<File | undefined>();
+const message = ref<string>("");
+
+const { csv } = usePapaparse(file)
 
 const contas = useLocalStorage('contas', [], {
   serializer: {
@@ -64,21 +65,6 @@ const filtered = computed(() => {
 
 const lastImport = useLocalStorage('lastImport', 0)
 
-const handleFile = (file: File) => {
-  Papa.parse(file, {
-    header: true,
-    skipEmptyLines: true,
-    complete: function (results: any) {
-      csv.value = results.data.map(item => { return { ...item, Conta: account.value, Categoria: "" } });
-      const datas = [... new Set(csv.value.map(m => parseDate(m.Data).getTime()))]
-      date.value = {
-        start: new Date(Math.min(...datas)),
-        end: new Date(Math.max(...datas)),
-      }
-    }.bind(this)
-  });
-}
-
 
 const downloadExemplo = () => {
   const header = ['Data', 'Descrição', 'Valor', 'Conta', 'Categoria']
@@ -96,21 +82,27 @@ const downloadExemplo = () => {
   lastImport.value = new Date().getTime();
 }
 
+const handleError = (error: any) => {
+  message.value = error.message;
+}
 
-watch(files, (files) => {
-  handleFile(files[0])
+watch(csv, (value) => {
+  const datas = [... new Set(value.map(m => parseDate(m.Data).getTime()))]
+  date.value = {
+    start: new Date(Math.min(...datas)),
+    end: new Date(Math.max(...datas)),
+  }
 })
 
-const receitas = computed(() => {
-  const valor = filtered.value.filter(f => Number(f.Valor) > 0).map(m => Number(m.Valor)).reduce((a, b) => a + b, 0)
-  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor)
-})
 
-const despesas = computed(() => {
-  const valor = filtered.value.filter(f => Number(f.Valor) < 0).map(m => Number(m.Valor)).reduce((a, b) => a + b, 0)
-  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor)
-})
+watch(message, (v) => {
 
+  if (v) {
+    setTimeout(() => {
+      message.value = "";
+    }, 3000);
+  }
+})
 
 </script>
 
@@ -148,41 +140,17 @@ const despesas = computed(() => {
     <div class="flex flex-col">
       <div class="bg-[#fefefe] rounded-md p-5 flex gap-4 flex-col">
         <h1 class="text-xl font-medium text-slate-600">Adicione novas transferências</h1>
-        <Dropzone @onDrop="files = $event" class="w-full" />
+        <Dropzone @onDrop="file = $event[0]" @onDropError="handleError" class="w-full" />
 
-        <div v-for="file in files" :key="file.name">
-          <FileItem :file="file" />
-        </div>
+        <FileItem v-if="file" :file="file" />
 
-        <div :class="files.length === 0 || !account ? 'tooltip' : ''"
+        <div :class="file || !account ? 'tooltip' : ''"
           data-tip="Você precisa importar o arquivo de transferências e selecionar uma conta.">
-          <button :disabled="files.length === 0 || !account" class="btn btn-block btn-primary"
-            @click="downloadExemplo">
+          <button :disabled="!file?.name || !account" class="btn btn-block btn-primary" @click="downloadExemplo">
             converter {{ filtered.length }} entradas</button>
         </div>
       </div>
-
-    <!-- <div class="stats stats-horizontal lg:stats-horizontal shadow">
-      <div class="stat">
-        <div class="stat-title">Linhas filtradas</div>
-        <div class="stat-value">{{ filtered.length }}</div>
-        <div class="stat-desc">de {{ csv.length }} importadas</div>
-      </div>
-
-      <div class="stat">
-        <div class="stat-title">Receitas</div>
-        <div class="stat-value"> {{ receitas }}</div>
-        <div class="stat-desc">no período {{ `${new Date(date.start).toLocaleDateString('pt-BR', { day: "numeric", month: "short" })} - ${new Date(date.end).toLocaleDateString('pt-BR', { day: "numeric", month: "short" })}` }}</div>
-
-      </div>
-
-      <div class="stat">
-        <div class="stat-title">Despesas</div>
-        <div class="stat-value">{{ despesas }}</div>
-        <div class="stat-desc">no período {{ `${new Date(date.start).toLocaleDateString('pt-BR', { day: "numeric", month: "short" })} - ${new Date(date.end).toLocaleDateString('pt-BR', { day: "numeric", month: "short" })}` }}</div>
-      </div>
-    </div> -->
-  </div>
+    </div>
 
 
     <div>
@@ -207,7 +175,30 @@ const despesas = computed(() => {
   <div class="absolute top-0 right-0 p-8">
     <ProfileBadge />
   </div>
+
+  <Transition name="slide-fade">
+    <div v-if="message" class="toast">
+      <div class="alert alert-error">
+        <span>{{ message }}</span>
+      </div>
+    </div>
+  </Transition>
+
 </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+.slide-fade-enter-active {
+  transition: all 0.3s ease-out;
+}
+
+.slide-fade-leave-active {
+  transition: all 0.8s cubic-bezier(1, 0.5, 0.8, 1);
+}
+
+.slide-fade-enter-from,
+.slide-fade-leave-to {
+  transform: translateX(20px);
+  opacity: 0;
+}
+</style>
